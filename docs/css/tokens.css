@@ -9,9 +9,9 @@
   --text: #1d2233;
   --muted: #566079;
 
-  --primary: #4338ca;
+  --primary: #234a9c;
   --primary-ink: #ffffff;
-  --primary-soft: #e8e7fb;
+  --primary-soft: #e6edfa;
 
   --ok: #115e59;
   --ok-soft: #d6f2ee;
@@ -35,9 +35,9 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 1px 2px rgb(29 34 51 / 6%), 0 4px 16px rgb(29 34 51 / 6%);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 2px rgb(29 34 51 / 4%), 0 6px 20px rgb(29 34 51 / 5%);
 
   --dur-fast: 150ms;
   --dur: 350ms;

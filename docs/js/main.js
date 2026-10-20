@@ -1,4 +1,4 @@
-import { activityFeed } from './components/feed.js';
+import { activityFeed, winsPanel } from './components/feed.js';
 import { burst } from './components/cheer.js';
 import { memberCard } from './components/memberCard.js';
 import { nudgeBanner } from './components/nudge.js';
@@ -55,16 +55,21 @@ function view(ctx) {
     <main id="main" tabindex="-1">
       ${nudgeBanner(ctx)}
       ${projectMeter(ctx)}
-      <section aria-labelledby="team-title">
-        <h2 id="team-title">Team</h2>
-        <ul class="team">${data.members.map((m) => memberCard(ctx, m)).join('')}</ul>
-      </section>
       <div class="columns">
-        <section aria-labelledby="tasks-title">
-          <h2 id="tasks-title">Tasks</h2>
-          ${tasks.length ? `<ul class="tasks">${tasks.map((t) => taskCard(ctx, t)).join('')}</ul>` : '<p class="empty card">No tasks yet. Add some in your group chat for now. This prototype comes with a ready-made project.</p>'}
-        </section>
-        ${activityFeed(ctx)}
+        <div class="primary">
+          <section aria-labelledby="team-title">
+            <h2 id="team-title">Team</h2>
+            <ul class="team">${data.members.map((m) => memberCard(ctx, m)).join('')}</ul>
+          </section>
+          <section aria-labelledby="tasks-title">
+            <h2 id="tasks-title">Tasks</h2>
+            ${tasks.length ? `<ul class="tasks">${tasks.map((t) => taskCard(ctx, t)).join('')}</ul>` : '<p class="empty card">No tasks yet. This prototype comes with a ready-made project; use Reset demo to restore it.</p>'}
+          </section>
+        </div>
+        <aside class="side" aria-label="Cheers and team activity">
+          ${winsPanel(ctx)}
+          ${activityFeed(ctx)}
+        </aside>
       </div>
     </main>
   </div>`;
