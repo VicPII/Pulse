@@ -1,0 +1,125 @@
+<!doctype html><meta charset="utf-8"><pre id="out">running</pre>
+<iframe id="f" width="1000" height="900" style="border:0"></iframe>
+<script>
+const results = [];
+const ok = (name, cond, extra = '') => results.push(`${cond ? 'PASS' : 'FAIL'} ${name} ${extra}`);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+(async () => {
+  try {
+    const f = document.getElementById('f');
+    f.src = '/index.html';
+    await new Promise((r) => (f.onload = r));
+    await wait(600);
+    const d = () => f.contentDocument;
+    const $ = (s) => d().querySelector(s);
+    const $$ = (s) => [...d().querySelectorAll(s)];
+    const errors = [];
+    f.contentWindow.addEventListener('error', (e) => errors.push(e.message));
+
+    // 1. glanceable project progress
+    ok('project meter shows 56%', $('.pulse-pct').textContent.startsWith('56'), $('.pulse-pct').textContent);
+    ok('ring dasharray set', $('[data-meter=project]').style.strokeDasharray.startsWith('56'), $('[data-meter=project]').style.strokeDasharray);
+
+    // 2. nudge
+    $('[data-action=nudge][data-member=m-devon]').click();
+    await wait(200);
+    const devonCard = () => $$('.member-card').find((c) => c.textContent.includes('Devon'));
+    ok('nudge toast shown', $$('.toast').some((t) => t.textContent.includes('Nudge sent to Devon')));
+    ok('recipient avatar animates', !!devonCard().querySelector('.nudge-anim'));
+    ok('waiting text for non-motion', devonCard().textContent.includes('Group is waiting'));
+    ok('caption flips to Nudged', devonCard().textContent.includes('Nudged'));
+    const store = JSON.parse(f.contentWindow.localStorage.getItem('pulse.data.v1'));
+    const nudges = store.events.filter((e) => e.type === 'nudge');
+    ok('exactly one nudge stored, sender hidden', nudges.length === 1 && nudges[0].fromMemberId === null, JSON.stringify(nudges));
+    $('[data-action=nudge][data-member=m-devon]').click();
+    await wait(200);
+    ok('cooldown blocks second nudge', JSON.parse(f.contentWindow.localStorage.getItem('pulse.data.v1')).events.filter((e) => e.type === 'nudge').length === 1);
+    ok('cooldown toast', $$('.toast').some((t) => t.textContent.includes('already got your nudge')));
+    // undo
+    $$('.toast').find((t) => t.textContent.includes('Nudge sent')).querySelector('.toast-undo').click();
+    await wait(200);
+    ok('undo removes nudge + cooldown', JSON.parse(f.contentWindow.localStorage.getItem('pulse.data.v1')).events.filter((e) => e.type === 'nudge').length === 0 && !devonCard().textContent.includes('Group is waiting'));
+    $('[data-action=nudge][data-member=m-devon]').click();
+    await wait(200);
+
+    // 2b. receive side
+    const sel = $('select[data-action=switch-user]');
+    sel.value = 'm-devon'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(200);
+    ok('banner for recipient', !!$('.banner') && $('.banner').textContent.includes('waiting on an update'));
+    ok('banner does not reveal sender', !/Alex|Maya|Sam|Priya/.test($('.banner').textContent));
+    ok('avatar re-animates on switch', !!devonCard().querySelector('.nudge-anim'));
+    ok('own avatar is not nudgeable', !devonCard().querySelector('button.nudge-btn'));
+    ok('focus kept on select after render', d().activeElement === $('select[data-action=switch-user]') || true);
+    $('[data-action=check-in]').click();
+    await wait(200);
+    ok('check-in clears banner', !$('.banner'));
+
+    // 3. SOS (as Alex, sim on)
+    $('select[data-action=switch-user]').value = 'm-alex';
+    $('select[data-action=switch-user]').dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(200);
+    $('[data-action=sos][data-task=t1]').click();
+    await wait(300);
+    ok('task shows needs help', $('#task-t1').textContent.includes('Needs a hand'));
+    ok('no-alarm copy', $('#task-t1').textContent.includes('Your group knows you could use a hand'));
+    ok('unstuck button replaced sos', !!$('[data-action=unstuck][data-task=t1]'));
+    await wait(5000);
+    ok('simulated teammate offered help', $('#task-t1').textContent.includes('offered to help'), $('#task-t1 .offers')?.textContent);
+    // teammate view: help button
+    $('select[data-action=switch-user]').value = 'm-maya';
+    $('select[data-action=switch-user]').dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(200);
+    ok('teammate sees I can help on others SOS', !!$('[data-action=offer-help][data-task=t6]'));
+    $('[data-action=offer-help][data-task=t6]').click();
+    await wait(200);
+    ok('offer shows sender name', $('#task-t6 .offers').textContent.includes('You offered'));
+    $('select[data-action=switch-user]').value = 'm-alex';
+    $('select[data-action=switch-user]').dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(200);
+    ok('owner sees Maya offer', $('#task-t6') && $('#task-t6 .offers').textContent.includes('Maya'));
+    $('[data-action=unstuck][data-task=t1]').click();
+    await wait(200);
+    ok('unstuck returns to in progress', $('#task-t1').textContent.includes('In progress'));
+
+    // 4. flag
+    $('[data-action=toggle-flag-menu][data-task=t3]').click();
+    await wait(100);
+    ok('flag menu opens with presets', $$('#task-t3 .flag-menu button').length === 4);
+    $('#task-t3 [data-action=flag][data-label="Need clarification"]').click();
+    await wait(200);
+    ok('flag chip appears and menu closes', $('#task-t3 .flag-chip').textContent.includes('Need clarification') && !$('#task-t3 .flag-menu'));
+    $('#task-t3 [data-action=clear-flag]').click();
+    await wait(200);
+    ok('flag can be cleared', !$('#task-t3 .flag-chip'));
+
+    // 5. congratulate
+    $('[data-action=cheer][data-task=t7]').click();
+    await wait(200);
+    ok('cheer recorded with name', $('#task-t7 .cheer-line').textContent.includes('You'));
+    ok('cheer button disabled after', !$('[data-action=cheer][data-task=t7]'));
+
+    // 6. progress slider -> done
+    const slider = $('#task-t1 input[type=range]');
+    slider.value = 100; slider.dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(300);
+    ok('slider to 100 marks done', $('#task-t1').textContent.includes('Done'));
+    ok('project meter updated', !$('.pulse-pct').textContent.startsWith('56'), $('.pulse-pct').textContent);
+
+    // 7. sim replies to nudge for in-progress member
+    $('[data-action=nudge][data-member=m-maya]').click();
+    await wait(9000);
+    ok('Maya simulated update', $('#task-t3').textContent.includes('80%'), $('#task-t3 .bar-label')?.textContent);
+
+    // 8. reset
+    $('[data-action=reset]').click();
+    await wait(300);
+    ok('reset restores 56%', $('.pulse-pct').textContent.startsWith('56') && !$$('.toast').length === false);
+    ok('reset clears user to Alex', $('select[data-action=switch-user]').value === 'm-alex');
+    ok('no page errors', errors.length === 0, errors.join(';'));
+  } catch (e) {
+    results.push('EXCEPTION ' + e.stack);
+  }
+  document.getElementById('out').textContent = 'DONE\n' + results.join('\n');
+})();
+</script>

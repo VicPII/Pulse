@@ -1,0 +1,46 @@
+/* Text tones are AA on their soft backgrounds; fill tones are >= 3:1 on white for rings and bars. */
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  --bg: #f4f5fb;
+  --surface: #ffffff;
+  --surface-2: #eef0f8;
+  --border: #dadeee;
+  --text: #1d2233;
+  --muted: #566079;
+
+  --primary: #4338ca;
+  --primary-ink: #ffffff;
+  --primary-soft: #e8e7fb;
+
+  --ok: #115e59;
+  --ok-soft: #d6f2ee;
+  --ok-fill: #0d9488;
+
+  --done: #166534;
+  --done-soft: #dcf5e3;
+  --done-fill: #16a34a;
+
+  --help: #8a4b00;
+  --help-soft: #fff1d6;
+  --help-fill: #d97706;
+
+  --quiet: #475569;
+  --quiet-soft: #e6e9f2;
+  --quiet-fill: #64748b;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgb(29 34 51 / 6%), 0 4px 16px rgb(29 34 51 / 6%);
+
+  --dur-fast: 150ms;
+  --dur: 350ms;
+  --dur-meter: 900ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
